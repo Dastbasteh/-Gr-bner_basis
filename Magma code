@@ -1,30 +1,3 @@
-Skip to content
-Search or jump to…
-Pull requests
-Issues
-Marketplace
-Explore
- 
-@Dastbasteh 
-Dastbasteh
-/
-Dastbasteh
-Public
-Code
-Pull requests
-Actions
-Projects
-Security
-Insights
-Settings
-Dastbasteh/Grobner_basis_R
-@Dastbasteh
-Dastbasteh Rename Gröbner_basis_R to Grobner_basis_R
-Latest commit edc3d8b 17 days ago
- History
- 1 contributor
-201 lines (167 sloc)  4.57 KB
-
 /*We define a function which takes a set of generators for an ideal I in R, and returns at msot two generators.
 Inputs: A the set of generators in the form [f_i,g_i] (f_i+ug_i) for some i>0, and a prime number p to generate the finite field.*/
 
@@ -218,26 +191,3 @@ ISFirstType(ListOfGen(2,70));
 ISFirstType({[x^3-1,1],[0,x-1]});
 
 
-
-
-
-
-
-
-
-
-Footer
-© 2022 GitHub, Inc.
-Footer navigation
-Terms
-Privacy
-Security
-Status
-Docs
-Contact GitHub
-Pricing
-API
-Training
-Blog
-About
-Dastbasteh/Grobner_basis_R at edc3d8b213c2615f99ed9e5c986b6e40b91106cd · Dastbasteh/Dastbasteh
