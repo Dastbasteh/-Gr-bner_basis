@@ -1,0 +1,243 @@
+Skip to content
+Search or jump to…
+Pull requests
+Issues
+Marketplace
+Explore
+ 
+@Dastbasteh 
+Dastbasteh
+/
+Dastbasteh
+Public
+Code
+Pull requests
+Actions
+Projects
+Security
+Insights
+Settings
+Dastbasteh/Grobner_basis_R
+@Dastbasteh
+Dastbasteh Rename Gröbner_basis_R to Grobner_basis_R
+Latest commit edc3d8b 17 days ago
+ History
+ 1 contributor
+201 lines (167 sloc)  4.57 KB
+
+/*We define a function which takes a set of generators for an ideal I in R, and returns at msot two generators.
+Inputs: A the set of generators in the form [f_i,g_i] (f_i+ug_i) for some i>0, and a prime number p to generate the finite field.*/
+
+p:=7;
+Fp:=GF(p);
+FpPoly<x>:=PolynomialRing(Fp,1);  
+
+GrobBasis:=function(A)
+FpPoly<x>:=PolynomialRing(Fp,1);  
+"The given generators of I are", A;
+
+A1:=[SetToSequence(A)[i][1]: i in [1..#SetToSequence(A)]];
+A2:=[SetToSequence(A)[i][2]: i in [1..#SetToSequence(A)]];
+NonZeroA:=[a: a in A|a[1] ne 0]; //elements of A with non-zero first coordinates//
+NonZeroA2:=[a: a in A|a[2] ne 0]; //elements of A with non-zero second coordinates//
+
+if #NonZeroA eq 0 and #NonZeroA2 eq 0 then
+return([0,0]);
+elif #NonZeroA eq 0 then;
+I2:=ideal<FpPoly|A2>;
+Grob2:=GroebnerBasis(I2);
+g:=Grob2[1];
+"Gen of I[2] is",g;
+return([0,g]);
+elif #NonZeroA2 eq 0 then;
+I1:=ideal<FpPoly|A1>;
+Grob1:=GroebnerBasis(I1);
+f:=Grob1[1];
+"Gen of I[1] is",f;
+return([f,0]);
+else;
+
+I1:=ideal<FpPoly|A1>;
+I2:=ideal<FpPoly|A2>;
+Grob1:=GroebnerBasis(I1);
+Grob2:=GroebnerBasis(I2);
+f:=Grob1[1];
+"Gen of I[1] is",f;
+g:=Grob2[1];
+"Gen of I[2] is",g;
+assert #Grob1 eq 1 and #Grob2 eq 1;
+Fpx<x>:=PolynomialRing(Fp);
+
+
+//This returns sa+tb=r (Extended Euclidean Algorithm)//
+ExtendedEuclidean:=function(a,b);
+a0:=Fpx! a;
+b0:=Fpx! b;
+t0:=0;
+t:=1;
+s0:=1;
+s:=0;
+if Degree(b0) ge Degree(a0) then
+q:=1;
+else;
+q:=Fpx! ((a0) div (b0));
+end if;
+r:=a0-(q*b0);
+while r ne 0 do
+temp:=t0-(q*t);
+t0:=t;
+t:=temp;
+temp:=s0-(q*s);
+s0:=s;
+s:=temp;
+a0:=b0;
+b0:=r;
+if Degree(b0) ge Degree(a0) then
+q:=1;
+else;
+q:=(a0) div (b0);
+end if;
+r:=a0-(q*b0);
+end while;
+r:=b0;
+assert (s* (Fpx! a))+(t*(Fpx! b)) eq r;
+return([r,s,t]);
+end function;
+
+Partaker:=function(a)
+if Degree(a) gt 0 then
+return(Evaluate(a,-x));
+else;
+return(a);
+end if;
+end function;
+
+
+//We construct ff+ugg in A, where ff is a scalar multiple of f// (Lemma 2.22 part 1)
+if #NonZeroA eq 0 then;
+ff:=0;
+gg:=g;
+elif #NonZeroA eq 1 then;
+ff:=NonZeroA[1][1];
+gg:=NonZeroA[1][2];
+elif #NonZeroA eq 2 then;
+s:=ExtendedEuclidean(NonZeroA[1][1],NonZeroA[2][1]);
+ff:=s[1];
+gg:=Partaker(s[2])*(Fpx! NonZeroA[1][2])+Partaker(s[3])*(Fpx! NonZeroA[2][2]);
+else;
+s:=ExtendedEuclidean(NonZeroA[1][1],NonZeroA[2][1]);
+ff:=s[1];
+gg:=Partaker(s[2])*(Fpx! NonZeroA[1][2])+Partaker(s[3])*(Fpx! NonZeroA[2][2]);
+i:=3;
+while Degree(ff) gt Degree(f) do;
+s:=ExtendedEuclidean(ff,NonZeroA[i][1]);
+ff:=s[1];
+gg:=Partaker(s[2])*gg+Partaker(s[3])*(Fpx! NonZeroA[i][2]);
+i:=i+1;
+end while;
+end if;
+printf "[%o,%o] is in I. ",ff,(Fpx! gg) mod (Fpx! ff);
+
+GenHA:={Fpx!f};  //Gens of HA are defined over Fpx, to find the Grobner basis we need to define them over FpPoly. We first use Lemma 2.22 part2//
+for i:=1 to #SetToSequence(A) do
+r:=(Fpx! SetToSequence(A)[i][1])/(Fpx! f);
+GenHA:=GenHA join {Fpx! (( Evaluate(r,-x))*(Fpx!(gg))-(Fpx! SetToSequence(A)[i][2]) )};
+end for;
+
+NGenHA:=[];
+for a in GenHA do;
+Coeff:=[];
+for i:=0 to Degree(a) do;
+Coeff:=Coeff cat [Coefficient(a, i)];
+end for;
+NGenHA:= NGenHA cat [Coeff];
+end for;
+ 
+FpPoly<x>:=PolynomialRing(Fp,1); //This is esential to define the gens over this ring to compute Grob basis//
+ListOfGen:=[];
+for a in NGenHA do;
+f:=FpPoly! 0;
+for i:=1 to #a do;
+f:=f+ (FpPoly! (a[i]* (FpPoly! x)^(i-1) ) );
+end for;
+ListOfGen:=ListOfGen cat [f];
+end for;
+
+
+assert #SetToSequence(GenHA) eq #ListOfGen;  //We assert the same generators are converted from the ring Fpx to FpPoly//
+for i:=1 to #ListOfGen do;
+assert Fpx! ListOfGen[i] eq SetToSequence(GenHA)[i];
+end for;  
+
+
+HA:=ideal<FpPoly|ListOfGen>;
+Grob3:=GroebnerBasis(HA);
+assert #Grob3 eq 1;
+h:=Grob3[1];
+"the generators are";
+return( [[Fpx!ff, (Fpx!gg) mod (Fpx!h)],[0,Fpx! h]]);
+end if;
+end function;
+
+//GrobBasis({[x^117+3*x^129+x^21,0],[0,4*x^55+x^39],[x^34+x^21,x^45-2*x^39+x^24-x^19+4*x^13+2*x^5]});//
+
+RanPolynomial:=function(r) //this generates a random monic polynomial of degree r //
+if r eq 0 then;
+return(Random(Fp));
+end if;
+f:=FpPoly! 0;
+for i:=1 to r do
+f:=f+ (FpPoly! (Random(Fp)* ((FpPoly! x)^(i-1)) ) );
+end for;
+f:=f+ (FpPoly! (FpPoly! x)^(r) ) ;
+return(f);
+end function;
+
+//this generates a set consisting of n gens of degree at most t //
+ListOfGen:=function(n,t);
+List:={};
+for i:=1 to n do
+List:=List join {[RanPolynomial(Random(0,t)),RanPolynomial(Random(0,t))]};
+end for;
+return(List);
+end function;
+
+
+
+ISFirstType:=function(A); //This takes a set A of generators and returns "true" if the ideal generated by A is a first type, and retuens "false" otherwise //
+GB:=GrobBasis(A);
+GB;
+if GB[1][2] eq 0 then;
+return("true");
+else;
+return("false");
+end if;
+end function;
+ 
+ISFirstType(ListOfGen(2,70));
+ISFirstType({[x^3-1,1],[0,x-1]});
+
+
+
+
+
+
+
+
+
+
+Footer
+© 2022 GitHub, Inc.
+Footer navigation
+Terms
+Privacy
+Security
+Status
+Docs
+Contact GitHub
+Pricing
+API
+Training
+Blog
+About
+Dastbasteh/Grobner_basis_R at edc3d8b213c2615f99ed9e5c986b6e40b91106cd · Dastbasteh/Dastbasteh
