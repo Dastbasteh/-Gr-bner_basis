@@ -1,6 +1,9 @@
 /*We define a function which takes a set of generators for an ideal I in R, and returns at msot two generators.
 Inputs: A the set of generators in the form [f_i,g_i] (f_i+ug_i) for some i>0, and a prime number p to generate the finite field.*/
 
+
+
+
 p:=7;
 Fp:=GF(p);
 FpPoly<x>:=PolynomialRing(Fp,1);  
