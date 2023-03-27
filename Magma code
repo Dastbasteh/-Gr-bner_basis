@@ -29,7 +29,7 @@ return([f,0]);
 else;
 
 I1:=ideal<FpPoly|A1>;
-I2:=ideal<FpPoly|A2>;
+I2:=ideal<FpPoly|Append(A2,GroebnerBasis(I1)[1])>;
 Grob1:=GroebnerBasis(I1);
 Grob2:=GroebnerBasis(I2);
 f:=Grob1[1];
